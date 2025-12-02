@@ -2,6 +2,6 @@ DC = docker compose
 
 PHONY: up, down
 up:
-	$(DC) up -d
+	$(DC) up
 down:
 	$(DC) down

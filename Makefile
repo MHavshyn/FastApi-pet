@@ -4,7 +4,7 @@ BACKEND_CONTAINER = backend1
 PHONY: up down build
 
 up:
-	$(DC) up
+	$(DC) up -d
 
 down:
 	$(DC) down

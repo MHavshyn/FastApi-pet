@@ -15,13 +15,13 @@ class PostgresSettings(BaseSettings):
     PGPASSWORD: str
     PGPORT: int = 5432
 
-
     @property
     def DATABASE_ASYNC_URL(self) -> str:
         return f"postgresql+asyncpg://{self.PGUSER}:{self.PGPASSWORD}@{self.PGHOST}:{self.PGPORT}/{self.PGDATABASE}"
 
 
 class Settings(CoreSettings, PostgresSettings):
+    SENTRY_DNS: str
     pass
 
 

@@ -1,16 +1,23 @@
-from fastapi import FastAPI, requests
-
-from scalar_fastapi import get_scalar_api_reference
-
+import sentry_sdk
 from apps.info.router import info_router
 from apps.users.router import router_users
+from fastapi import FastAPI, requests
+from fastapi.responses import ORJSONResponse
+from scalar_fastapi import get_scalar_api_reference
 from settings import settings
+
+sentry_sdk.init(
+    dsn=settings.SENTRY_DNS,
+    send_default_pii=True,
+)
+
 
 def get_application() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         debug=settings.DEBUG,
         root_path="/api",
+        default_response_class=ORJSONResponse,
     )
     app.include_router(router_users, prefix="/users", tags=["Users"])
 
@@ -20,7 +27,7 @@ def get_application() -> FastAPI:
     @app.get("/scalar", include_in_schema=False)
     async def scalar_html(request: requests.Request):
         return get_scalar_api_reference(
-            openapi_url=request.scope.get('root_path', "") + app.openapi_url,
+            openapi_url=request.scope.get("root_path", "") + app.openapi_url,
             title=app.title,
         )
 

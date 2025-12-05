@@ -1586,6 +1586,18 @@ files = [
 ]
 
 [[package]]
+name = "scalar-fastapi"
+version = "1.5.0"
+description = "This plugin provides an easy way to render a beautiful API reference based on a OpenAPI/Swagger file with FastAPI."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "scalar_fastapi-1.5.0-py3-none-any.whl", hash = "sha256:8e712599ccdfbb614bff5583fdbee1bef03e5fac1e06520287337ff232cb667a"},
+    {file = "scalar_fastapi-1.5.0.tar.gz", hash = "sha256:5ae887fcc0db63305dc41dc39d61f7be183256085872aa33b294e0d48e29901e"},
+]
+
+[[package]]
 name = "sentry-sdk"
 version = "2.46.0"
 description = "Python client for Sentry (https://sentry.io)"
@@ -2145,4 +2157,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "ef99d930281074aca50f596c7225539c430a907300bb1ee1489eb0cf1f2b13ee"
+content-hash = "318fc7981d56a421b37993404795b01975721c21e5c9c1be9712bbda8e3e41b6"

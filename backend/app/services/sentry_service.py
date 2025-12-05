@@ -1,10 +1,11 @@
-import logging
+# import logging
 from typing import NoReturn
 
 import sentry_sdk
 from fastapi import HTTPException, status
 from sentry_sdk import capture_message
-from sentry_sdk.integrations.logging import LoggingIntegration
+
+# from sentry_sdk.integrations.logging import LoggingIntegration
 from settings import settings
 
 
@@ -16,10 +17,12 @@ def unexpected_error(
 
 
 def init_sentry():
-    sentry_logging = LoggingIntegration(
-        event_level=logging.ERROR,
-    )
+    # sentry_logging = LoggingIntegration(
+    #     event_level=logging.ERROR,
+    # )
 
     sentry_sdk.init(
-        dsn=settings.SENTRY_DNS, send_default_pii=True, integrations=[sentry_logging]
+        dsn=settings.SENTRY_DNS,
+        send_default_pii=True,
+        # integrations=[sentry_logging]
     )

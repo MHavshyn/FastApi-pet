@@ -1,15 +1,12 @@
-import sentry_sdk
 from apps.info.router import info_router
 from apps.users.router import router_users
 from fastapi import FastAPI, requests
 from fastapi.responses import ORJSONResponse
 from scalar_fastapi import get_scalar_api_reference
+from services.sentry_service import init_sentry
 from settings import settings
 
-sentry_sdk.init(
-    dsn=settings.SENTRY_DNS,
-    send_default_pii=True,
-)
+init_sentry()
 
 
 def get_application() -> FastAPI:

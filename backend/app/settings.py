@@ -22,7 +22,8 @@ class PostgresSettings(BaseSettings):
 
 class Settings(CoreSettings, PostgresSettings):
     SENTRY_DNS: str
-    pass
+    BETTER_STACK_TOKEN: str
+    BETTER_STACK_URL: str
 
 
 @lru_cache()

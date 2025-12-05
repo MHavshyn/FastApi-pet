@@ -11,6 +11,9 @@ info_router = APIRouter()
 @info_router.get("/backend")
 async def get_backend_info() -> BaseBackendInfoSchema:
     """Get current backend info"""
+    # logging.info("info1", extra={"info": "info1"})
+    # get_betterstack_logger.info("error1", extra={"info": "info1"})
+    # get_betterstack_logger.error("error2", extra={"info": "info2"})
     return BaseBackendInfoSchema(backend=socket.gethostname())
 
 

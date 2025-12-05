@@ -3,6 +3,7 @@ site_name: FastApi-pet
 nav:
   - About: index.md
   - Examples: examples.md
+  - Logging: logging.md
 
 theme:
   name: material
@@ -11,4 +12,3 @@ theme:
     - search.suggestions
     - search.highlight
     - content.code.copy
-    -

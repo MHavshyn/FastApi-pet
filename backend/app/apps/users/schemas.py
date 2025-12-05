@@ -40,7 +40,7 @@ class BaseUserSchema(BaseModel):
     name: Annotated[
         str,
         StringConstraints(
-            pattern=r"^[0-9a-zA-Zа-яА-ЯїЇяЯєЄіІґҐ'_. ]+$",
+            pattern=r"^[0-9a-zA-Zа-яА-ЯїЇяЯєЄіІґҐ_.'\- ]+$",
             strip_whitespace=True,
             max_length=50,
             min_length=3,

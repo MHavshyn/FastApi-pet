@@ -6,6 +6,7 @@ from apps.core.base_models import Base
 
 class User(Base):
     name: Mapped[str]
-    email: Mapped[str]
-    password: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str] = mapped_column(unique=True)
+    hashed_password: Mapped[str]
+
 

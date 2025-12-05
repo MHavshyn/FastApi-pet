@@ -2,6 +2,7 @@ import socket
 
 from fastapi import APIRouter
 from settings import settings
+
 from .schemas import BaseBackendInfoSchema, DatabaseInfoSchema
 
 info_router = APIRouter()

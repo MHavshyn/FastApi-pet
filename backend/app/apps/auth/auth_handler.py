@@ -1,3 +1,7 @@
+import datetime as dt
+from uuid import uuid4
+
+import jwt
 from apps.auth.password_handler import PasswordEncrypt
 from apps.auth.schemas import LoginResponseSchema
 from apps.users.crud import User, user_manager
@@ -33,11 +37,46 @@ class AuthHandler:
                 status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password"
             )
 
-        return LoginResponseSchema(
-            access_token="access_token",
-            refresh_token="refresh_token",
-            expired_at=5,
+        tokens_response = await self.generate_tokens(user=user)
+        return tokens_response
+
+    async def generate_tokens(self, user: User) -> LoginResponseSchema:
+        access_token_payload = {
+            "sub": str(user.id),
+            "email": user.email,
+        }
+        access_token = await self.generate_token(
+            payload=access_token_payload, expire_minutes=self.access_token_expires
         )
+
+        refresh_token_payload = {
+            "sub": str(user.id),
+            "email": user.email,
+            "key": uuid4().hex,
+        }
+
+        refresh_token = await self.generate_token(
+            payload=refresh_token_payload, expire_minutes=self.refresh_token_expires
+        )
+
+        return LoginResponseSchema(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expired_at=self.access_token_expires * 60,
+        )
+
+    async def generate_token(self, payload: dict, expire_minutes: int) -> str:
+        now = dt.datetime.now()
+        token_expires_at = dt.timedelta(minutes=expire_minutes)
+        time_payload = {
+            "exp": now + token_expires_at,
+            "iat": now,
+        }
+        payload.update(time_payload)
+        token = jwt.encode(payload, self.jwt_secret, algorithm=self.jwt_algorithm)
+        return token
+
+        return ""
 
 
 auth_handler = AuthHandler()

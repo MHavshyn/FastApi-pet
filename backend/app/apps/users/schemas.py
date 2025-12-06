@@ -1,11 +1,12 @@
-from pydantic import BaseModel, Field, EmailStr, StringConstraints, field_validator
 from typing import Annotated
-from password_strength import PasswordPolicy
 
 from apps.core.schemas import IdSchema
+from password_strength import PasswordPolicy
+from pydantic import BaseModel, EmailStr, Field, StringConstraints, field_validator
+
 
 class UserPasswordSchema(BaseModel):
-    password: str = Field(description='User password', examples=["Password123!"])
+    password: str = Field(description="User password", examples=["Password123!"])
 
     @field_validator("password")
     @classmethod
@@ -25,18 +26,26 @@ class UserPasswordSchema(BaseModel):
         for error in errors:
             error_name = error.name()
             if error_name == "length":
-                error_messages.append(f"Password must be at least {error.length} characters long")
+                error_messages.append(
+                    f"Password must be at least {error.length} characters long"
+                )
             elif error_name == "uppercase":
-                error_messages.append(f"Password must contain at least {error.count} uppercase letter(s)")
+                error_messages.append(
+                    f"Password must contain at least {error.count} uppercase letter(s)"
+                )
             elif error_name == "numbers":
-                error_messages.append(f"Password must contain at least {error.count} didit(s)")
+                error_messages.append(
+                    f"Password must contain at least {error.count} didit(s)"
+                )
             elif error_name == "special":
-                error_messages.append(f"Password must contain at least {error.count} special character(s)")
+                error_messages.append(
+                    f"Password must contain at least {error.count} special character(s)"
+                )
         raise ValueError("; ".join(error_messages))
 
 
 class BaseUserSchema(BaseModel):
-    email: EmailStr = Field(description='User email', examples=["john.doe@example.com"])
+    email: EmailStr = Field(description="User email", examples=["john.doe@example.com"])
     name: Annotated[
         str,
         StringConstraints(
@@ -44,7 +53,7 @@ class BaseUserSchema(BaseModel):
             strip_whitespace=True,
             max_length=50,
             min_length=3,
-        )
+        ),
     ] = Field(examples=["casper"])
 
 
@@ -53,4 +62,6 @@ class RegisterUserSchema(BaseUserSchema, UserPasswordSchema):
 
 
 class RegisteredUserSchema(BaseUserSchema, IdSchema):
-    pass
+    model_config = {
+        "from_attributes": True,
+    }

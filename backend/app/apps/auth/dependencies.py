@@ -1,3 +1,6 @@
+from enum import StrEnum
+from typing import Callable
+
 from apps.core.dependencies import get_async_session
 from apps.users.crud import User, user_manager
 from fastapi import Depends, HTTPException, status
@@ -35,3 +38,20 @@ async def get_admin_user(user: User = Depends(get_current_user)) -> User:
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
     )
+
+
+def require_permissions(required_permissions: list[StrEnum]) -> Callable:
+    async def dependency(user: User = Depends(get_current_user)) -> User:
+        if user.is_admin:
+            return user
+        user_permissions = set(user.permissions)
+        require_permissions_set: set[str] = {per.value for per in required_permissions}
+
+        if require_permissions_set.issubset(user_permissions):
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Permissions {', '.join(required_permissions)} required",
+        )
+
+    return dependency

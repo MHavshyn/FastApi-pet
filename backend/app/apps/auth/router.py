@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router_auth = APIRouter()
 
 
-@router_auth.post("/loging")
+@router_auth.post("/login")
 async def user_loging(
     data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(get_async_session),

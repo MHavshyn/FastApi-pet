@@ -1,9 +1,10 @@
-from apps.auth.dependencies import get_admin_user, get_current_user
+from apps.auth.dependencies import get_current_user, require_permissions
 from apps.core.dependencies import get_async_session
 from apps.users.schemas import RegisteredUserSchema, RegisterUserSchema
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .constants import UserPermissionsEnum
 from .crud import User, user_manager
 
 router_users = APIRouter()
@@ -22,7 +23,10 @@ async def get_user_info(user: User = Depends(get_current_user)) -> RegisteredUse
     return RegisteredUserSchema.from_orm(user)
 
 
-@router_users.get("/{id}", dependencies=[Depends(get_admin_user)])
+@router_users.get(
+    "/{id}",
+    dependencies=[Depends(require_permissions([UserPermissionsEnum.CAN_SEE_USERS]))],
+)
 async def get_user(
     user_id: int = Path(..., description="User id", ge=1, alias="id"),
     session: AsyncSession = Depends(get_async_session),

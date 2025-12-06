@@ -20,7 +20,14 @@ class PostgresSettings(BaseSettings):
         return f"postgresql+asyncpg://{self.PGUSER}:{self.PGPASSWORD}@{self.PGHOST}:{self.PGPORT}/{self.PGDATABASE}"
 
 
-class Settings(CoreSettings, PostgresSettings):
+class JWTSettings(BaseSettings):
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_TIME_MINUTES: int = 5
+    REFRESH_TOKEN_TIME_MINUTES: int = 60
+
+
+class Settings(CoreSettings, PostgresSettings, JWTSettings):
     SENTRY_DNS: str
     BETTER_STACK_TOKEN: str
     BETTER_STACK_URL: str

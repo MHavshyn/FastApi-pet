@@ -7,6 +7,7 @@ from apps.auth.schemas import LoginResponseSchema
 from apps.users.crud import User, user_manager
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from services.redis_service import redis_service
 from settings import settings
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -59,6 +60,12 @@ class AuthHandler:
             payload=refresh_token_payload, expire_minutes=self.refresh_token_expires
         )
 
+        await redis_service.set_cache(
+            key=refresh_token_payload["key"],
+            value=user.id,
+            ttl=self.refresh_token_expires,
+        )
+
         return LoginResponseSchema(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -89,6 +96,29 @@ class AuthHandler:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
             )
+
+    async def get_refresh_tokens(
+        self, refresh_token: str, session: AsyncSession
+    ) -> LoginResponseSchema:
+        payload = await self.decode_token(refresh_token)
+
+        stored_refresh = await redis_service.get_cache(payload["key"])
+        if not stored_refresh:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Token was used already"
+            )
+        await redis_service.delete_cache(payload["key"])
+        user: User | None = await user_manager.get(
+            session=session, field=User.id, field_value=int(payload["sub"])
+        )
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        tokens_response = await self.generate_tokens(user=user)
+        return tokens_response
 
 
 auth_handler = AuthHandler()

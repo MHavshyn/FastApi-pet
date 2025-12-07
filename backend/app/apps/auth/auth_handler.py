@@ -101,8 +101,14 @@ class AuthHandler:
         self, refresh_token: str, session: AsyncSession
     ) -> LoginResponseSchema:
         payload = await self.decode_token(refresh_token)
+        token_key = payload.get("key")
+        if not token_key:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token was provided",
+            )
 
-        stored_refresh = await redis_service.get_cache(payload["key"])
+        stored_refresh = await redis_service.get_cache()
         if not stored_refresh:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Token was used already"
@@ -111,6 +117,13 @@ class AuthHandler:
         user: User | None = await user_manager.get(
             session=session, field=User.id, field_value=int(payload["sub"])
         )
+
+        if user.use_token_since and user.use_token_since > payload["iat"]:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User forced logout",
+            )
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -13,7 +13,7 @@ class RedisService:
             username=settings.REDIS_USERNAME,
             password=settings.REDIS_PASSWORD,
             db=settings.REDIS_DATABASE,
-            decode_responses=True,
+            decode_responses=False,
         )
 
     @asynccontextmanager
@@ -23,7 +23,8 @@ class RedisService:
         except Exception as e:
             raise e
         finally:
-            await self.redis.close()
+            pass
+            # await self.redis.close()
 
     async def set_cache(self, key: str, value: str | int, ttl: int = 60):
         async with self.get_redis() as _redis:

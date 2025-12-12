@@ -1,3 +1,4 @@
+import uuid as uuid_module
 from datetime import datetime
 
 from settings import settings
@@ -32,3 +33,13 @@ class Base(AsyncAttrs, DeclarativeBase):
     @declared_attr.directive
     def __tablename__(cls) -> str:
         return cls.__name__.lower() + "s"
+
+
+class UpdatedAtMixin:
+    updated_at: Mapped[datetime] = mapped_column(
+        default=func.now(), onupdate=func.now()
+    )
+
+
+class UUIDMixin:
+    uuid_data: Mapped[uuid_module.UUID] = mapped_column(default=uuid_module.uuid4)

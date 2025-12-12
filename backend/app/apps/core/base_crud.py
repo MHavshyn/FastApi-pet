@@ -6,7 +6,7 @@ from apps.core.base_models import Base
 from apps.core.schemas import PaginationResponseSchema, SearchParamsSchema, SortEnum
 from fastapi import HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import and_, asc, desc, func, or_, select, update
+from sqlalchemy import and_, asc, delete, desc, exists, func, or_, select, update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
@@ -70,6 +70,18 @@ class BaseCRUDManager(ABC):
         )
         if not data_for_updating:
             return item
+
+        optimistic_offline_lock_version = getattr(item, "version", None)
+        if optimistic_offline_lock_version is not None:
+            if optimistic_offline_lock_version != getattr(
+                data_to_patch, "version", None
+            ):
+                raise HTTPException(
+                    detail="Item has been modified by another user",
+                    status_code=status.HTTP_409_CONFLICT,
+                )
+            data_for_updating |= {"version": data_to_patch.version + 1}
+
         query = (
             update(self.model)
             .where(self.model.id == instance_id)
@@ -122,3 +134,23 @@ class BaseCRUDManager(ABC):
             limit=params.limit,
             pages=math.ceil(total_count / params.limit),
         )
+
+    async def item_exists(
+        self, *, session: AsyncSession, field_value: Any, field: InstrumentedAttribute
+    ) -> bool:
+        query = select(exists(self.model)).where(field == field_value)
+        result = await session.execute(query)
+        return result.scalar()
+
+    async def delete_item(self, instance_id: int, session: AsyncSession) -> None:
+        is_item_exists = await self.item_exists(
+            session=session, field_value=instance_id, field=self.model.id
+        )
+        if not is_item_exists:
+            raise HTTPException(
+                detail=f"Item with id {instance_id} not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        query = delete(self.model).where(self.model.id == instance_id)
+        await session.execute(query)
+        await session.commit()

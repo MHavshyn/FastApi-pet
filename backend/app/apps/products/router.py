@@ -10,6 +10,7 @@ from apps.products.models import Product
 from apps.products.schemas import (
     NewCategory,
     PaginatorSavedCategoryResponseSchema,
+    PaginatorSavedProductResponseSchema,
     PatchCategorySchema,
     SavedCategorySchema,
     SavedProductSchema,
@@ -184,3 +185,33 @@ async def create_product(
         session=session,
     )
     return SavedProductSchema.model_validate(created_product)
+
+
+@router_products.get("/{id}")
+async def get_product_by_id(
+    product_id: int = Path(..., description="The id of thr item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+) -> SavedProductSchema:
+    saved_product = await product_manager.get(
+        session=session, field=Product.id, field_value=product_id
+    )
+    if not saved_product:
+        raise HTTPException(
+            detail="Product with this id not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return saved_product
+
+
+@router_products.get("/")
+async def get_products(
+    params: Annotated[SearchParamsSchema, Depends()],
+    session: AsyncSession = Depends(get_async_session),
+) -> PaginatorSavedProductResponseSchema:
+    result = await product_manager.get_items_paginated(
+        session=session,
+        params=params,
+        targeted_schema=SavedProductSchema,
+        search_fields=[Product.title, Product.description],
+    )
+    return result

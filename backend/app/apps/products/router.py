@@ -1,20 +1,26 @@
+import uuid
 from typing import Annotated
 
 from apps.auth.dependencies import require_permissions
 from apps.core.dependencies import get_async_session
 from apps.core.schemas import SearchParamsSchema
-from apps.products.crud import Category, category_manager
+from apps.products.crud import Category, category_manager, product_manager
+from apps.products.dependencies import validate_image, validate_images
+from apps.products.models import Product
 from apps.products.schemas import (
     NewCategory,
     PaginatorSavedCategoryResponseSchema,
     PatchCategorySchema,
     SavedCategorySchema,
+    SavedProductSchema,
 )
 from apps.users.constants import UserPermissionsEnum
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from storage.s3 import s3_storage
 
 router_categories = APIRouter()
+router_products = APIRouter()
 
 
 @router_categories.post(
@@ -101,3 +107,80 @@ async def delete_category(
     session: AsyncSession = Depends(get_async_session),
 ):
     await category_manager.delete_item(session=session, instance_id=category_id)
+
+
+@router_products.post(
+    "/create",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[
+        Depends(require_permissions([UserPermissionsEnum.CAN_CREATE_PRODUCT]))
+    ],
+)
+async def create_product(
+    title: str = Form(min_length=3, max_length=200),
+    description: str = Form(min_length=3, max_length=2048),
+    price: float = Form(ge=0.01),
+    category_id: int = Form(gt=0),
+    main_image: UploadFile = Depends(validate_image),
+    images: list[UploadFile] | None = Depends(validate_images),
+    session: AsyncSession = Depends(get_async_session),
+) -> SavedProductSchema:
+    is_category_exists = await category_manager.item_exists(
+        field=Category.id, field_value=category_id, session=session
+    )
+    if not is_category_exists:
+        raise HTTPException(
+            detail="Category with this id not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    is_product_exists = await product_manager.item_exists(
+        field=Product.title, field_value=title, session=session
+    )
+    if is_product_exists:
+        raise HTTPException(
+            detail="Product with this title already exists",
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+    product_uuid = uuid.uuid4()
+
+    files: list[UploadFile] = []
+
+    if main_image is not None:
+        files.append(main_image)
+
+    if images:
+        files.extend(images)
+
+    main_image_url = None
+    images_urls: list[str] = []
+
+    if files:
+        try:
+            uploaded_urls = await s3_storage.upload_files(
+                files=files,
+                uuid_obj=product_uuid,
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+                detail="Failed to upload files to S3",
+            )
+
+        if main_image and uploaded_urls:
+            main_image_url = uploaded_urls[0]
+            images_urls = uploaded_urls[1:]
+        else:
+            images_urls = uploaded_urls
+
+    created_product = await product_manager.create(
+        title=title.strip(),
+        description=description.strip(),
+        price=price,
+        images=images_urls,
+        main_image=main_image_url,
+        category_id=category_id,
+        session=session,
+    )
+    return SavedProductSchema.model_validate(created_product)

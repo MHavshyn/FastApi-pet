@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from apps.auth.router import router_auth
 from apps.info.router import info_router
-from apps.products.router import router_categories
+from apps.products.router import router_categories, router_products
 from apps.users.router import router_users
 from fastapi import FastAPI, requests
 from fastapi.responses import ORJSONResponse
@@ -36,9 +36,8 @@ def get_application() -> FastAPI:
     )
     app.include_router(router_auth, prefix="/auth", tags=["auth"])
     app.include_router(router_users, prefix="/users", tags=["Users"])
-    app.include_router(
-        router_categories, prefix="/categories", tags=["Products", "Categories"]
-    )
+    app.include_router(router_categories, prefix="/categories", tags=["Categories"])
+    app.include_router(router_products, prefix="/products", tags=["Products"])
 
     if settings.DEBUG:
         app.include_router(info_router, prefix="/info", tags=["Info"])

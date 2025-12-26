@@ -35,7 +35,16 @@ class RedisSettings(BaseSettings):
     REDIS_DATABASE: int = 0
 
 
-class Settings(CoreSettings, PostgresSettings, JWTSettings, RedisSettings):
+class S3Settings(BaseSettings):
+    S3_ENDPOINT: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_PUBLIC_URL: str
+    S3_REGION: str
+    S3_BUCKET: str
+
+
+class Settings(CoreSettings, PostgresSettings, JWTSettings, RedisSettings, S3Settings):
     SENTRY_DNS: str
     BETTER_STACK_TOKEN: str
     BETTER_STACK_URL: str

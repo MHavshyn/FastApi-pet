@@ -21,17 +21,17 @@ async def validate_image(image: UploadFile = File(...)) -> UploadFile:
 
 
 async def validate_images(
-    image: list[UploadFile] = File(default=None, max_length=10),
-) -> list[UploadFile]:
-    if image is None:
+    images: list[UploadFile] | None = File(default=None, max_length=10),
+) -> list[UploadFile] | None:
+    if images is None:
         return []
 
-    if len(image) > 10:
+    if len(images) > 10:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Too many images"
         )
 
-    for img in image:
+    for img in images:
         await validate_image(img)
 
-    return image
+    return images

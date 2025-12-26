@@ -122,9 +122,9 @@ async def create_product(
     price: float = Form(ge=0.01),
     category_id: int = Form(gt=0),
     main_image: UploadFile = Depends(validate_image),
-    images: list[UploadFile] = Depends(validate_images),
+    images: list[UploadFile] | None = Depends(validate_images),
     session: AsyncSession = Depends(get_async_session),
-):
+) -> SavedProductSchema:
     is_category_exists = await category_manager.item_exists(
         field=Category.id, field_value=category_id, session=session
     )
@@ -144,15 +144,35 @@ async def create_product(
         )
 
     product_uuid = uuid.uuid4()
-    try:
-        main_image_url, *images_urls = await s3_storage.upload_files(
-            files=[main_image, *images], uuid_obj=product_uuid
-        )
-    except Exception:
-        raise HTTPException(
-            detail="Failed to upload files to S3",
-            status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
-        )
+
+    files: list[UploadFile] = []
+
+    if main_image is not None:
+        files.append(main_image)
+
+    if images:
+        files.extend(images)
+
+    main_image_url = None
+    images_urls: list[str] = []
+
+    if files:
+        try:
+            uploaded_urls = await s3_storage.upload_files(
+                files=files,
+                uuid_obj=product_uuid,
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
+                detail="Failed to upload files to S3",
+            )
+
+        if main_image and uploaded_urls:
+            main_image_url = uploaded_urls[0]
+            images_urls = uploaded_urls[1:]
+        else:
+            images_urls = uploaded_urls
 
     created_product = await product_manager.create(
         title=title.strip(),

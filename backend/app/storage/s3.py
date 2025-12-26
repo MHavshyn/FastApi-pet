@@ -35,26 +35,31 @@ class S3Storage:
         root_dir: str = "productsImages",
         is_needed_bucket_name_in_url: bool = False,
     ):
-        if isinstance(files, UploadFile):
-            files = [files]
+        try:
+            if isinstance(files, UploadFile):
+                files = [files]
 
-        tasks = []
-        urls = []
-        async with self.get_s3_client() as s3_client:
-            for file in files:
-                file.file.seek(0)
-                object_name = f"{root_dir}/{str(uuid_obj)}/{file.filename}"
-                tasks.append(
-                    s3_client.upload_fileobj(file.file, self.bucket_name, object_name)
-                )
-                if is_needed_bucket_name_in_url:
-                    urls.append(
-                        f"{settings.S3_PUBLIC_URL}/{self.bucket_name}/{object_name}"
+            tasks = []
+            urls = []
+            async with self.get_s3_client() as s3_client:
+                for file in files:
+                    file.file.seek(0)
+                    object_name = f"{root_dir}/{str(uuid_obj)}/{file.filename}"
+                    tasks.append(
+                        s3_client.upload_fileobj(
+                            file.file, self.bucket_name, object_name
+                        )
                     )
-                else:
-                    urls.append(f"{settings.S3_PUBLIC_URL}/{object_name}")
-            await asyncio.gather(*tasks)
-            return urls
+                    if is_needed_bucket_name_in_url:
+                        urls.append(
+                            f"{settings.S3_PUBLIC_URL}/{self.bucket_name}/{object_name}"
+                        )
+                    else:
+                        urls.append(f"{settings.S3_PUBLIC_URL}/{object_name}")
+                await asyncio.gather(*tasks)
+                return urls
+        except Exception:
+            return []
 
 
 s3_storage = S3Storage()

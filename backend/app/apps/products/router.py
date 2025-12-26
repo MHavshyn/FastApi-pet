@@ -10,6 +10,7 @@ from apps.products.models import Product
 from apps.products.schemas import (
     NewCategory,
     PaginatorSavedCategoryResponseSchema,
+    PaginatorSavedProductResponseSchema,
     PatchCategorySchema,
     SavedCategorySchema,
     SavedProductSchema,
@@ -49,7 +50,7 @@ async def create_category(
 
 @router_categories.get("/{id}")
 async def get_category_by_id(
-    category_id: int = Path(..., description="The id of thr item", ge=1, alias="id"),
+    category_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
     session: AsyncSession = Depends(get_async_session),
 ) -> SavedCategorySchema:
     saved_category = await category_manager.get(
@@ -86,7 +87,7 @@ async def get_categories(
 )
 async def update_category(
     patch_data: PatchCategorySchema,
-    category_id: int = Path(..., description="The id of thr item", ge=1, alias="id"),
+    category_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
     session: AsyncSession = Depends(get_async_session),
 ) -> SavedCategorySchema:
     updated_category = await category_manager.patch(
@@ -103,7 +104,7 @@ async def update_category(
     ],
 )
 async def delete_category(
-    category_id: int = Path(..., description="The id of thr item", ge=1, alias="id"),
+    category_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
     session: AsyncSession = Depends(get_async_session),
 ):
     await category_manager.delete_item(session=session, instance_id=category_id)
@@ -184,3 +185,65 @@ async def create_product(
         session=session,
     )
     return SavedProductSchema.model_validate(created_product)
+
+
+@router_products.get("/{id}")
+async def get_product_by_id(
+    product_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+) -> SavedProductSchema:
+    saved_product = await product_manager.get(
+        session=session, field=Product.id, field_value=product_id
+    )
+    if not saved_product:
+        raise HTTPException(
+            detail="Product with this id not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return saved_product
+
+
+@router_products.get("/")
+async def get_products(
+    params: Annotated[SearchParamsSchema, Depends()],
+    session: AsyncSession = Depends(get_async_session),
+) -> PaginatorSavedProductResponseSchema:
+    result = await product_manager.get_items_paginated(
+        session=session,
+        params=params,
+        targeted_schema=SavedProductSchema,
+        search_fields=[Product.title, Product.description],
+    )
+    return result
+
+
+@router_products.patch(
+    "/{id}",
+    status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(require_permissions([UserPermissionsEnum.CAN_CREATE_PRODUCT]))
+    ],
+)
+async def update_product(
+    patch_data: SavedProductSchema,
+    product_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+) -> SavedProductSchema:
+    updated_product = await product_manager.patch(
+        session=session, instance_id=product_id, data_to_patch=patch_data
+    )
+    return updated_product
+
+
+@router_products.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permissions([UserPermissionsEnum.CAN_CREATE_PRODUCT]))
+    ],
+)
+async def delete_product(
+    product_id: int = Path(..., description="The id of the item", ge=1, alias="id"),
+    session: AsyncSession = Depends(get_async_session),
+):
+    await product_manager.delete_item(session=session, instance_id=product_id)

@@ -1,14 +1,20 @@
 import uuid
 from typing import Annotated
 
-from apps.auth.dependencies import require_permissions
+from apps.auth.dependencies import get_current_user, require_permissions
 from apps.core.dependencies import get_async_session
 from apps.core.schemas import SearchParamsSchema
-from apps.products.crud import Category, category_manager, product_manager
+from apps.products.crud import (
+    Category,
+    category_manager,
+    order_manager,
+    product_manager,
+)
 from apps.products.dependencies import validate_image, validate_images
 from apps.products.models import Product
 from apps.products.schemas import (
     NewCategory,
+    OrderSchema,
     PaginatorSavedCategoryResponseSchema,
     PaginatorSavedProductResponseSchema,
     PatchCategorySchema,
@@ -16,12 +22,14 @@ from apps.products.schemas import (
     SavedProductSchema,
 )
 from apps.users.constants import UserPermissionsEnum
+from apps.users.models import User
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from storage.s3 import s3_storage
 
 router_categories = APIRouter()
 router_products = APIRouter()
+router_orders = APIRouter()
 
 
 @router_categories.post(
@@ -247,3 +255,14 @@ async def delete_product(
     session: AsyncSession = Depends(get_async_session),
 ):
     await product_manager.delete_item(session=session, instance_id=product_id)
+
+
+@router_orders.get("/")
+async def get_current_order(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> OrderSchema:
+    order = await order_manager.get_or_create(
+        session=session, user_id=user.id, is_closed=False
+    )
+    return OrderSchema.model_validate(order)

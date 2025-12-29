@@ -7,7 +7,7 @@ from apps.core.schemas import PaginationResponseSchema, SearchParamsSchema, Sort
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import and_, asc, delete, desc, exists, func, or_, select, update
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 
@@ -154,3 +154,25 @@ class BaseCRUDManager(ABC):
         query = delete(self.model).where(self.model.id == instance_id)
         await session.execute(query)
         await session.commit()
+
+    async def get_or_create(
+        self, session: AsyncSession, defaults: dict = None, **kwargs
+    ) -> Optional[Base]:
+        query = select(self.model).filter_by(**kwargs)
+        result = await session.execute(query)
+        instance = result.scalar_one_or_none()
+        if instance:
+            return instance
+
+        instance = self.model(**kwargs, **(defaults or {}))
+        session.add(instance)
+        try:
+            await session.commit()
+            await session.refresh(instance)
+            return instance
+        except IntegrityError:
+            await session.rollback()
+            raise HTTPException(
+                detail=f"Error has occurred while creating {self.model} instance with {kwargs}",
+                status_code=status.HTTP_409_CONFLICT,
+            )

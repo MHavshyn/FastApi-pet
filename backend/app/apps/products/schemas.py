@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from apps.core.schemas import IdSchema, InstanceVersion, PaginationResponseSchema
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -38,3 +40,24 @@ class SavedProductSchema(IdSchema):
 
 class PaginatorSavedProductResponseSchema(PaginationResponseSchema):
     items: list[SavedCategorySchema]
+
+
+class OrderProductsSchema(BaseModel):
+    price: float
+    quantity: int
+    total: float
+    product: SavedProductSchema
+
+    class Config:
+        from_attributes = True
+
+
+class OrderSchema(BaseModel):
+    created_at: datetime = Field(examples=[datetime.now()])
+    is_closed: bool = Field(examples=[False])
+    user_id: int
+    cost: float
+    products: list[OrderProductsSchema]
+
+    class Config:
+        from_attributes = True

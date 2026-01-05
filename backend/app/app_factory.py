@@ -38,7 +38,7 @@ def get_application() -> FastAPI:
     app.include_router(router_users, prefix="/users", tags=["Users"])
     app.include_router(router_categories, prefix="/categories", tags=["Categories"])
     app.include_router(router_products, prefix="/products", tags=["Products"])
-    app.include_router(router_orders, prefix="/orders", tags=["Oeders"])
+    app.include_router(router_orders, prefix="/orders", tags=["Orders"])
 
     if settings.DEBUG:
         app.include_router(info_router, prefix="/info", tags=["Info"])

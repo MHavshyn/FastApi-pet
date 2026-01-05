@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import StrEnum
 
 from apps.core.schemas import IdSchema, InstanceVersion, PaginationResponseSchema
 from pydantic import BaseModel, ConfigDict, Field
@@ -61,3 +62,9 @@ class OrderSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ModeChangeOrderProductQuantityEnum(StrEnum):
+    INCREASE = "increase"
+    DECREASE = "decrease"
+    SET = "set"

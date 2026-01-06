@@ -1,11 +1,15 @@
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from settings import settings
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..core.dependencies import get_async_session
 from ..products.crud import order_manager
 from ..products.dependencies import get_order
 from ..products.models import Order
-from .schemas import PaymentUrlSchema
+from ..users.crud import user_manager
+from ..users.models import User
+from .schemas import PaymentUrlSchema, SetOrderToClosedSchema
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -50,3 +54,43 @@ async def get_payment_url(
     )
 
     return PaymentUrlSchema(url=session_stripe["url"])
+
+
+@payment_router.post("/webhook")
+async def process_payment_stripe(
+    stripe_data: dict, session: AsyncSession = Depends(get_async_session)
+):
+    if not stripe_data:
+        return
+    try:
+        event = stripe.Event.construct_from(stripe_data, settings.STRIPE_SECRET_KEY)
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No stripe data"
+        )
+
+    if not event["type"] == "checkout.session.completed":
+        return
+
+    user_id = int(event["data"]["object"]["metadata"]["user_id"])
+    user = await user_manager.get(session=session, field=User.id, field_value=user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No user")
+
+    order = await order_manager.get_or_create(
+        user_id=user_id, session=session, is_closed=False
+    )
+    if order.id != int(event["data"]["object"]["metadata"]["order_id"]):
+        raise ValueError("Outdated order")
+
+    paid = float(stripe_data["data"]["object"]["amount_total"]) / 100
+    if order.cost != paid:
+        raise ValueError("order cost is not equal to paid")
+
+    await order_manager.patch(
+        instance_id=order.id,
+        session=session,
+        data_to_patch=SetOrderToClosedSchema(),
+        exclude_unset=False,
+    )
+    return {f"{order.id=} closed": True}

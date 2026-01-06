@@ -18,3 +18,5 @@ RUN poetry install --no-ansi --no-root --no-interaction
 COPY /app /app
 
 EXPOSE 12321
+
+CMD ["sh","-c", "alembic upgrade head && gunicorn main:app --worker-class unicorn.worker.UvicornWorker --bind 0.0.0.0:12321 --workers 4"]

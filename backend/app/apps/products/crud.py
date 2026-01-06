@@ -21,16 +21,17 @@ class OrderCRUDManager(BaseCRUDManager):
         self.model = Order
 
     async def get_order_with_products(
-        self, session: AsyncSession, order_id: int
+        self, session: AsyncSession | None, order: int | Order
     ) -> Order:
-        result = await session.execute(
-            select(self.model)
-            .options(
-                selectinload(self.model.products).selectinload(OrderProduct.product)
+        if isinstance(order, int):
+            result = await session.execute(
+                select(self.model)
+                .options(
+                    selectinload(self.model.products).selectinload(OrderProduct.product)
+                )
+                .filter(self.model.id == order)
             )
-            .filter(self.model.id == order_id)
-        )
-        order = result.scalars().first()
+            order = result.scalars().first()
         if order.products:
             order.products = [p for p in order.products if p.quantity]
 

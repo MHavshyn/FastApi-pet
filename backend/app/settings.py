@@ -44,7 +44,18 @@ class S3Settings(BaseSettings):
     S3_BUCKET: str
 
 
-class Settings(CoreSettings, PostgresSettings, JWTSettings, RedisSettings, S3Settings):
+class PaymentSettings(BaseSettings):
+    STRIPE_SECRET_KEY: str
+
+
+class Settings(
+    CoreSettings,
+    PostgresSettings,
+    JWTSettings,
+    RedisSettings,
+    S3Settings,
+    PaymentSettings,
+):
     SENTRY_DNS: str
     BETTER_STACK_TOKEN: str
     BETTER_STACK_URL: str

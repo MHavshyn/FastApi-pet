@@ -25,6 +25,7 @@ dependencies = [
     "fastapi-cache2[redis] (>=0.2.2,<0.3.0)",
     "aioboto3 (>=15.5.0,<16.0.0)",
     "stripe (>=14.1.0,<15.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)",
 ]
 
 

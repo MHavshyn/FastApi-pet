@@ -1238,6 +1238,28 @@ docs = ["Sphinx", "furo"]
 test = ["objgraph", "psutil", "setuptools"]
 
 [[package]]
+name = "gunicorn"
+version = "23.0.0"
+description = "WSGI HTTP Server for UNIX"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "gunicorn-23.0.0-py3-none-any.whl", hash = "sha256:ec400d38950de4dfd418cff8328b2c8faed0edb0d517d3394e457c317908ca4d"},
+    {file = "gunicorn-23.0.0.tar.gz", hash = "sha256:f014447a0101dc57e294f6c18ca6b40227a4c90e9bdb586042628030cba004ec"},
+]
+
+[package.dependencies]
+packaging = "*"
+
+[package.extras]
+eventlet = ["eventlet (>=0.24.1,!=0.36.0)"]
+gevent = ["gevent (>=1.4.0)"]
+setproctitle = ["setproctitle"]
+testing = ["coverage", "eventlet", "gevent", "pytest", "pytest-cov"]
+tornado = ["tornado (>=0.2)"]
+
+[[package]]
 name = "h11"
 version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -1888,6 +1910,18 @@ files = [
     {file = "orjson-3.11.4-cp39-cp39-win32.whl", hash = "sha256:fb1c37c71cad991ef4d89c7a634b5ffb4447dbd7ae3ae13e8f5ee7f1775e7ab1"},
     {file = "orjson-3.11.4-cp39-cp39-win_amd64.whl", hash = "sha256:e2985ce8b8c42d00492d0ed79f2bd2b6460d00f2fa671dfde4bf2e02f49bf5c6"},
     {file = "orjson-3.11.4.tar.gz", hash = "sha256:39485f4ab4c9b30a3943cfe99e1a213c4776fb69e8abd68f66b83d5a0b0fdc6d"},
+]
+
+[[package]]
+name = "packaging"
+version = "25.0"
+description = "Core utilities for Python packages"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "packaging-25.0-py3-none-any.whl", hash = "sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"},
+    {file = "packaging-25.0.tar.gz", hash = "sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f"},
 ]
 
 [[package]]
@@ -3661,4 +3695,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "84c4e44f4f2623b7bd8a380c7b5ee7f300150c5c6c5219b3c170d98c9c6288ff"
+content-hash = "a74f5937fceb02c807d9ad1e520154e4d4e10cec699c3b23fd28a82fe14d5154"

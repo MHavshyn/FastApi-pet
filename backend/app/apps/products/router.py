@@ -276,6 +276,7 @@ async def delete_product(
 async def get_current_order(
     order: Order = Depends(get_order),
 ) -> OrderSchema:
+    order = await order_manager.get_order_with_products(order=order, session=None)
     return OrderSchema.model_validate(order)
 
 
@@ -304,6 +305,6 @@ async def change_order_product_quantity(
         is_set_quantity_mode=is_set_quantity_mode,
     )
     updated_order = await order_manager.get_order_with_products(
-        order_id=order.id, session=session
+        order=order.id, session=session
     )
     return updated_order

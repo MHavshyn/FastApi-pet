@@ -1,3 +1,5 @@
+import re
+
 from apps.auth.dependencies import get_current_user
 from apps.core.dependencies import get_async_session
 from apps.products.crud import order_manager, product_manager
@@ -9,11 +11,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 ALLOWED_IMAGE_FILE_TYPES = {"image/jpeg", "image/png", "image/gif"}
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
+FILENAME_REGEX = re.compile(r"^[A-Za-z0-9_.-]+\.(jpg|jpeg|png|gif)$", re.IGNORECASE)
+
 
 async def validate_image(image: UploadFile = File(...)) -> UploadFile:
     if image.content_type not in ALLOWED_IMAGE_FILE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid file type"
+        )
+    if not image.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is required",
+        )
+
+    if not FILENAME_REGEX.match(image.filename):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename must contain only English letters, numbers, dots, dashes or underscores",
         )
 
     file_size = len(await image.read())

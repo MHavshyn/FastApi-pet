@@ -39,3 +39,8 @@ async def upload_files(files: list[UploadFile] = File(...)) -> dict:
     uuid_id = uuid4()
     urls = await s3_storage.upload_files(files, uuid_id)
     return {"urls": urls}
+
+
+# @info_router.get("/cicd-test")
+# async def cicd() -> dict:
+#     return {"result": "OK"}

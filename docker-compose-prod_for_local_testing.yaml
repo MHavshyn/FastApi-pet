@@ -1,5 +1,5 @@
 x-service-backend-common: &service-backend-common
-  image: hillelfastapi/shop-api:latest
+  image: shoppet/shop-api:latest
   platform: linux/amd64
   restart: always
   env_file:

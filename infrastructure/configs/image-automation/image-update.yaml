@@ -19,8 +19,8 @@ spec:
       messageTemplate: |
         chore(images): update shop-api dev image
 
-        Files: {{range .Updated.Files}}
-        - {{.}}
+        Files: {{range $filename, $_ := .Changed.FileChanges}}
+        - {{ $filename }}
         {{end}}
     push:
       branch: main

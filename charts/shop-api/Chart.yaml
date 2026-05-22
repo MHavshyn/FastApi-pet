@@ -1,0 +1,15 @@
+apiVersion: v2
+name: shop-api
+description: Helm chart for shoppet/shop-api FastAPI application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - fastapi
+  - shop
+  - api
+home: https://hub.docker.com/repository/docker/shoppet/shop-api
+sources:
+  - https://hub.docker.com/repository/docker/shoppet/shop-api
+maintainers:
+  - name: shoppet

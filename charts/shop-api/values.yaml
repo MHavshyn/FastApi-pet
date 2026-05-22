@@ -1,0 +1,132 @@
+# Default values for shop-api Helm chart.
+
+replicaCount: 2
+
+image:
+  repository: shoppet/shop-api
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 12321
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: shop-api.local
+      paths:
+        - path: /api
+          pathType: Prefix
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: shop-api-tls
+  #    hosts:
+  #      - shop-api.local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Database migrations (alembic upgrade head) are run as a Helm pre-install/pre-upgrade hook Job.
+migrations:
+  enabled: true
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  resources: {}
+
+# Probes hit /api/health and /api/ready because FastAPI uses root_path="/api".
+# Each block is rendered as-is into the container probe spec via `toYaml`.
+probes:
+  liveness:
+    httpGet:
+      path: /api/health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    httpGet:
+      path: /api/ready
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Non-sensitive configuration; mounted via ConfigMap as envFrom.
+config:
+  DEBUG: "false"
+  PGHOST: ""
+  PGDATABASE: ""
+  PGUSER: ""
+  PGPORT: "5432"
+  REDIS_HOST: ""
+  REDIS_PORT: "6379"
+  REDIS_USERNAME: ""
+  REDIS_DATABASE: "0"
+  JWT_ALGORITHM: "HS256"
+  ACCESS_TOKEN_TIME_MINUTES: "5"
+  REFRESH_TOKEN_TIME_MINUTES: "60"
+  S3_ENDPOINT: ""
+  S3_PUBLIC_URL: ""
+  S3_REGION: "us-east-1"
+  S3_BUCKET: ""
+  BETTER_STACK_URL: ""
+
+# Sensitive values; mounted via Secret as envFrom.
+# WARNING: In production prefer `existingSecret` (managed by SealedSecrets / External Secrets).
+secrets:
+  PGPASSWORD: ""
+  REDIS_PASSWORD: ""
+  JWT_SECRET_KEY: ""
+  S3_ACCESS_KEY: ""
+  S3_SECRET_KEY: ""
+  SENTRY_DNS: ""
+  BETTER_STACK_TOKEN: ""
+
+# If set, the chart will NOT create its own Secret and will use the named existing Secret instead.
+existingSecret: ""
+
+# Extra raw envs (list of {name, value} or {name, valueFrom}).
+extraEnv: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

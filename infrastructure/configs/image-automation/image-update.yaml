@@ -1,0 +1,29 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: shop-api-dev
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: |
+        chore(images): update shop-api dev image
+
+        Files: {{range .Updated.Files}}
+        - {{.}}
+        {{end}}
+    push:
+      branch: main
+  update:
+    path: ./apps/overlays/dev
+    strategy: Setters

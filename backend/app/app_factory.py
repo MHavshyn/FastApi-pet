@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from apps.auth.router import router_auth
+from apps.health.router import router_health
 from apps.info.router import info_router
 from apps.payments.router import payment_router
 from apps.products.router import router_categories, router_orders, router_products
@@ -51,6 +52,7 @@ def get_application() -> FastAPI:
     app.include_router(router_products, prefix="/products", tags=["Products"])
     app.include_router(router_orders, prefix="/orders", tags=["Orders"])
     app.include_router(payment_router, prefix="/payments", tags=["Payments"])
+    app.include_router(router_health, tags=["Health"])
 
     if settings.DEBUG:
         app.include_router(info_router, prefix="/info", tags=["Info"])

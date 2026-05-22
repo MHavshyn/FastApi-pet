@@ -1,0 +1,37 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: shop-postgres
+spec:
+  description: "PostgreSQL cluster for shop-api"
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  instances: 1
+
+  primaryUpdateStrategy: unsupervised
+
+  bootstrap:
+    initdb:
+      database: shop
+      owner: shop
+      encoding: UTF8
+      localeCollate: C
+      localeCType: C
+
+  storage:
+    size: 1Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  postgresql:
+    parameters:
+      max_connections: "50"
+      shared_buffers: "64MB"
+
+  monitoring:
+    enablePodMonitor: false

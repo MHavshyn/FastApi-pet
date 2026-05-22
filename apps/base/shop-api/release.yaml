@@ -1,0 +1,54 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: shop-api
+spec:
+  interval: 5m
+  releaseName: shop-api
+  chart:
+    spec:
+      chart: ./charts/shop-api
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      repository: shoppet/shop-api
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    replicaCount: 1
+    service:
+      type: ClusterIP
+      port: 80
+      targetPort: 12321
+    ingress:
+      enabled: true
+      className: nginx
+    existingSecret: shop-api-secrets
+    config:
+      DEBUG: "false"
+      PGPORT: "5432"
+      PGDATABASE: "shop"
+      PGUSER: "shop"
+      REDIS_PORT: "6379"
+      REDIS_USERNAME: ""
+      REDIS_DATABASE: "0"
+      JWT_ALGORITHM: "HS256"
+      ACCESS_TOKEN_TIME_MINUTES: "5"
+      REFRESH_TOKEN_TIME_MINUTES: "60"
+      S3_REGION: "us-east-1"
+    extraEnv:
+      - name: PGPASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: shop-postgres-app
+            key: password
+    migrations:
+      enabled: true

@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: shop-api
+spec:
+  values:
+    image:
+      tag: "latest" # {"$imagepolicy": "flux-system:shop-api-dev:tag"}
+    replicaCount: 1
+    resources: {}
+    ingress:
+      hosts:
+        - host: app.dev.local
+          paths:
+            - path: /api
+              pathType: Prefix
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: shop-api-tls
+          hosts:
+            - app.dev.local
+    config:
+      DEBUG: "true"
+      PGHOST: "shop-postgres-rw.shop-dev.svc.cluster.local"
+      REDIS_HOST: "redis-master.shop-dev.svc.cluster.local"
+      BETTER_STACK_URL: ""

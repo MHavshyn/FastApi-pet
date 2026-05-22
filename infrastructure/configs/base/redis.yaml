@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: redis
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: redis
+      version: "20.x.x"
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+      interval: 12h
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    architecture: standalone
+    auth:
+      enabled: true
+      password: "ChangeMe-Redis-Pass-123"
+    master:
+      persistence:
+        enabled: false
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+    replica:
+      replicaCount: 0
+    metrics:
+      enabled: false

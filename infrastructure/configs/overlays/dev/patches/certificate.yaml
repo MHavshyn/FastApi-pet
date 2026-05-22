@@ -1,0 +1,8 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: shop-api-tls
+spec:
+  commonName: app.dev.local
+  dnsNames:
+    - app.dev.local

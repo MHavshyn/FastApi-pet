@@ -1,7 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# NOTE: This file is kept for local `kubectl kustomize` testing only.
+# Flux uses separate Kustomizations: infrastructure-controllers and infrastructure-configs.
 resources:
   - controllers
+  - configs/cluster-issuer
   - configs/image-automation
   - configs/overlays/dev
   - configs/overlays/test

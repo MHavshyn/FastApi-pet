@@ -5,7 +5,7 @@ metadata:
 spec:
   values:
     image:
-      tag: "dev"
+      tag: "latest"
     replicaCount: 1
     resources:
       requests:

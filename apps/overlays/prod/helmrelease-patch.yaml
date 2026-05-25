@@ -5,7 +5,7 @@ metadata:
 spec:
   values:
     image:
-      tag: "v1.0.0"
+      tag: "latest"
     autoscaling:
       enabled: true
       minReplicas: 2

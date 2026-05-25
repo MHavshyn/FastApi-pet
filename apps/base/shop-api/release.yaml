@@ -30,7 +30,7 @@ spec:
       targetPort: 12321
     ingress:
       enabled: true
-      className: nginx
+      className: traefik
     existingSecret: shop-api-secrets
     config:
       DEBUG: "false"

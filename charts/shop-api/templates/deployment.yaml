@@ -31,6 +31,26 @@ spec:
       serviceAccountName: {{ include "shop-api.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.migrations.enabled }}
+      initContainers:
+        - name: alembic-upgrade
+          image: "{{ include "shop-api.image" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["sh", "-c"]
+          args:
+            - "alembic upgrade head"
+          envFrom:
+            - configMapRef:
+                name: {{ include "shop-api.configMapName" . }}
+            - secretRef:
+                name: {{ include "shop-api.secretName" . }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml (default .Values.resources .Values.migrations.resources) | nindent 12 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

@@ -8,6 +8,12 @@ spec:
       chart: redis-cluster
       version: "11.x.x"
   values:
+    global:
+      security:
+        allowInsecureImages: true
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/redis-cluster
     architecture: null
     auth: null
     master: null

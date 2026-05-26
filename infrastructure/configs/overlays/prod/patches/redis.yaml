@@ -3,30 +3,27 @@ kind: HelmRelease
 metadata:
   name: redis
 spec:
-  chart:
-    spec:
-      chart: redis-cluster
-      version: "11.x.x"
   values:
-    global:
-      security:
-        allowInsecureImages: true
-    image:
-      registry: docker.io
-      repository: bitnamilegacy/redis-cluster
-    architecture: null
-    auth: null
-    master: null
-    replica: null
-    cluster:
-      nodes: 6
-      replicas: 1
-    usePassword: true
-    password: "ChangeMe-Redis-Pass-123"
-    persistence:
+    architecture: replication
+    auth:
       enabled: true
-      size: 1Gi
-    redis:
+      password: "ChangeMe-Redis-Pass-123"
+    master:
+      persistence:
+        enabled: true
+        size: 1Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    replica:
+      replicaCount: 2
+      persistence:
+        enabled: true
+        size: 1Gi
       resources:
         requests:
           cpu: 100m

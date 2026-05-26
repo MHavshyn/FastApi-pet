@@ -33,5 +33,5 @@ spec:
     config:
       DEBUG: "false"
       PGHOST: "shop-postgres-rw.shop-prod.svc.cluster.local"
-      REDIS_HOST: "redis-cluster.shop-prod.svc.cluster.local"
+      REDIS_HOST: "redis-master.shop-prod.svc.cluster.local"
       BETTER_STACK_URL: "https://in.logs.betterstack.com"
